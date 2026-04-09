@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Respiratory Copilot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Patient File</h2>
+    <div class="stat-box">
+        <div class="stat-label">Current Diagnosis</div>
+        <div class="stat-value" id="diag-display">Waiting...</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Confidence</div>
+        <div class="stat-value" id="conf-display">0.0%</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Confirmed Symptoms</div>
+        <div id="symptom-list" style="margin-top: 10px;"></div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Ruled Out</div>
+        <div id="denied-list" style="margin-top: 10px;"></div>
+    </div>
+    
+    <button onclick="resetSession()" class="btn" style="background:#95a5a6; width:100%; margin-top:auto;">New Patient</button>
+    <a href="/dashboard" class="btn" style="background:#27ae60; width:100%; margin-top:10px; text-align:center; text-decoration:none; display:block;">Doctor Dashboard</a>
+</div>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="chat-title"><i class="fas fa-stethoscope"></i> Ambient Clinic Copilot</div>
+    </div>
+    <div class="chat-box" id="chat-box">
+        <div class="message bot-msg">System Active. Click the microphone to start continuous listening.</div>
+    </div>
+    <div class="input-area">
+        <button class="btn mic-btn" onclick="toggleMic()" id="mic-btn"><i class="fas fa-microphone"></i></button>
+        <input type="text" id="user-input" placeholder="Mic off. Click icon to start..." onkeypress="handleKey(event)">
+        <button class="btn send-btn" onclick="manualSend()">Send</button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+:root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --bg: #f4f7f6; }
+body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; height: 100vh; margin: 0; }
+
+.sidebar { width: 300px; background-color: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
+.sidebar h2 { font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #34495e; padding-bottom: 10px; }
+.stat-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+.stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+.stat-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
+.symptom-tag { display: inline-block; background: var(--secondary); padding: 5px 10px; border-radius: 15px; font-size: 12px; margin: 3px; }
+.denied-tag { background: var(--accent); opacity: 0.8; text-decoration: line-through; }
+
+.chat-container { flex: 1; display: flex; flex-direction: column; background: white; margin: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; }
+.chat-header { background: white; padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.chat-title { font-size: 18px; font-weight: bold; color: var(--primary); }
+.chat-box { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
+
+.message { max-width: 80%; margin-bottom: 15px; padding: 12px 18px; border-radius: 18px; line-height: 1.5; font-size: 15px; }
+.bot-msg { background: #eef2f5; color: var(--primary); border-bottom-left-radius: 4px; }
+.user-msg { background: var(--secondary); color: white; align-self: flex-end; margin-left: auto; border-bottom-right-radius: 4px; }
+
+.input-area { padding: 20px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; }
+input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; outline: none; transition: 0.3s; }
+input:focus { border-color: var(--secondary); }
+
+.btn { border: none; padding: 12px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+.send-btn { background: var(--secondary); color: white; }
+
+.mic-btn { background: #95a5a6; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.mic-btn.listening { animation: pulse 1.5s infinite; background: var(--accent); }
+
+@keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }

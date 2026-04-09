@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Dashboard specific layout */
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-top: 20px;}
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #2c3e50; color: white; }
+        tr:hover { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="btn" style="background: #2c3e50; color: white; padding: 10px; text-decoration: none; border-radius: 5px;"><i class="fas fa-arrow-left"></i> Back to Triage</a>
+        <h1 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 20px;"><i class="fas fa-user-md"></i> Doctor Dashboard</h1>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Time</th>
+                    <th>Diagnosis</th>
+                    <th>Confidence</th>
+                    <th>Confirmed</th>
+                    <th>Ruled Out (No)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in patients %}
+                <tr>
+                    <td style="font-family:monospace; font-size:12px;">{{ p.id }}...</td>
+                    <td>{{ p.time }}</td>
+                    <td class="{% if p.confidence > 0.8 %}risk-high{% else %}risk-low{% endif %}">
+                        {{ p.diagnosis }}
+                    </td>
+                    <td>{{ "%.1f"|format(p.confidence * 100) }}%</td>
+                    <td>
+                        {% for s in p.symptoms %}
+                            <span class='symptom-tag'>{{ s }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for d in p.denied %}
+                            <span class='symptom-tag denied-tag'>{{ d }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No patient sessions recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
