@@ -68,7 +68,7 @@ async function sendMessage(text) {
     addMessage(text, "user-msg");
 
     try {
-        const res = await fetch('/diagnose', {
+        const res = await fetch('/diagnose/' + CONSULT_ID, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({message: text})

@@ -1,15 +1,30 @@
 from flask import Flask
 from extensions import db
 from routes import main
+from models import Doctor
+from flask_login import LoginManager
 
 def create_app():
+    print("⚙️ Initializing Enterprise AI Copilot Server...")
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///patients.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clinic.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.secret_key = 'demo_secret_key_123'
+    
+    # Required by Flask-Login to encrypt session cookies
+    app.secret_key = 'super_secure_enterprise_key_change_in_production'
     
     # Initialize Database
     db.init_app(app)
+    
+    # Initialize Security Manager
+    login_manager = LoginManager()
+    login_manager.login_view = 'main.login' # If unauthorized, redirect here
+    login_manager.init_app(app)
+    
+    # Tell Flask how to load the current logged-in doctor
+    @login_manager.user_loader
+    def load_user(user_id):
+        return Doctor.query.get(int(user_id))
     
     # Register Routes
     app.register_blueprint(main)
@@ -21,5 +36,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    print("🚀 System Online. Access at http://127.0.0.1:5000")
+    print("🚀 Enterprise System Online. Access at http://127.0.0.1:5000")
     app.run(debug=True, port=5000)
