@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Clinical Copilot{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    <nav class="navbar">
+        <a href="/" class="navbar-brand" style="text-decoration: none; color: white;">
+            <i class="fas fa-stethoscope"></i> Ambient Copilot
+        </a>
+        <div class="navbar-nav">
+            {% if current_user.is_authenticated %}
+                <span class="nav-user"><i class="fas fa-user-md"></i> Dr. {{ current_user.username }}</span>
+                <a href="/dashboard" class="nav-link">My Dashboard</a>
+                
+                {% if current_user.username == 'admin' %}
+                    <a href="/admin" class="nav-link" style="color: #f39c12;">Analytics</a>
+                {% endif %}
+                
+                <a href="/logout" class="btn-danger" style="float:none; padding: 6px 12px; margin-left: 10px;">Logout</a>
+            {% else %}
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/signup" class="nav-link">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="max-width: 600px; margin: 20px auto;">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>

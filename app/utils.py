@@ -3,14 +3,12 @@ import re
 import pandas as pd
 import os
 
-# --- 1. LOAD THE AI MODELS (Safe Pathing for Flask) ---
 print("🚀 Initializing Clinical Engines...")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, '../ml_pipeline/dataset/rf_model.pkl')
 SYMPTOM_PATH = os.path.join(BASE_DIR, '../ml_pipeline/dataset/symptom_list.pkl')
 
 try:
-    # Load the Random Forest (Explainable AI)
     model = joblib.load(MODEL_PATH) 
     symptom_columns = joblib.load(SYMPTOM_PATH)
     print(f"   ✅ Brain Loaded ({len(symptom_columns)} symptoms).")
@@ -19,7 +17,6 @@ except Exception as e:
     model = None
     symptom_columns = []
 
-# --- 2. NLP PATTERNS (Your robust mapping) ---
 NLP_PATTERNS = [
     {"label": "Fever", "patterns": ["fever", "hot", "high temp", "burning up"]},
     {"label": "Cough", "patterns": ["cough", "coughing", "hacking"]},
@@ -41,33 +38,42 @@ NLP_PATTERNS = [
     {"label": "History_Asthma", "patterns": ["have asthma", "asthmatic"]},
     {"label": "History_Smoker", "patterns": ["smoke", "smoker", "tobacco"]},
     {"label": "History_COPD", "patterns": ["copd", "emphysema"]},
+    {"label": "Cyanosis", "patterns": ["blue lips", "blue face", "turning blue", "cyanotic"]},
+    {"label": "Altered_Mental_Status", "patterns": ["confused", "dizzy", "fainting", "passed out", "delirious"]},
+    {"label": "Stridor", "patterns": ["stridor", "choking", "throat closing", "gasping"]},
+    {"label": "Tachycardia", "patterns": ["heart racing", "palpitations", "heart beating fast", "tachycardia"]},
 ]
 
-# --- 3. CLINICAL LOGIC (NICE GUIDELINES) ---
-DOCTOR_LOGIC = {
-    'Cough': [
-        ('Sputum_Colored', "Is your cough productive? (Are you bringing up any yellow or green phlegm?)"),
-        ('Coughing_Blood', "Warning Sign Check: Have you coughed up any blood?"),
-        ('History_Smoker', "Do you smoke?"),
-        ('Shortness_of_breath', "Are you feeling breathless?")
-    ],
-    'Shortness_of_breath': [
-        ('Wheezing', "Do you hear a wheezing or whistling sound when you breathe?"),
-        ('Pain_Chest_Upper', "Do you have any pain in your chest?"),
-        ('History_Asthma', "Do you have a history of Asthma?"),
-        ('History_COPD', "Have you been diagnosed with COPD?")
-    ],
-    'Sore_throat': [
-        ('Fever', "Do you have a fever?"),
-        ('Runny_Nose_Clear', "Do you have a runny nose?")
-    ],
-    'Fever': [
-        ('Chills', "Are you experiencing chills or shivering?"),
-        ('Pain_Muscle_Diffuse', "Do you have body aches?")
-    ]
+# --- DYNAMIC QUESTION GENERATOR MAP ---
+# Translates the raw AI variable into a natural human question
+QUESTION_GENERATOR = {
+    'Sputum_Colored': "Is your cough productive? Are you bringing up any colored phlegm?",
+    'Coughing_Blood': "Warning Check: Have you coughed up any blood?",
+    'History_Smoker': "Do you currently smoke or have a history of smoking?",
+    'Wheezing': "Do you hear a wheezing or whistling sound when you breathe?",
+    'History_Asthma': "Do you have a personal history of asthma?",
+    'Fever': "Are you currently experiencing a fever or feeling hot?",
+    'Chills': "Have you had any chills, shivering, or cold sweats?",
+    'Pain_Muscle_Diffuse': "Are you experiencing severe, all-over body aches?",
+    'Pain_Chest_Upper': "Are you having any sharp or tight pain in your chest?",
+    'Sore_throat': "Does it hurt to swallow? Do you have a sore throat?",
+    'Shortness_of_breath': "Are you finding it difficult to catch your breath?",
+    'Runny_Nose_Clear': "Do you have a runny or stuffy nose?",
+    'Voice_Hoarseness': "Have you noticed your voice becoming hoarse or raspy?"
 }
 
-# --- 4. NLP FUNCTIONS (Your exact logic) ---
+# --- CLINICAL DECISION SUPPORT ---
+RED_FLAG_SYMPTOMS = [
+    'Shortness_of_breath', 
+    'Coughing_Blood', 
+    'Pain_Chest_Upper', 
+    'Wheezing',
+    'Cyanosis',
+    'Altered_Mental_Status',
+    'Stridor',
+    'Tachycardia'
+]
+
 def extract_symptoms_robust(text):
     text = text.replace("’", "'").replace("“", '"').replace("”", '"')
     text = re.sub(r'(Doctor:|Patient:|Dr\.:|Dr |Patient )', '', text, flags=re.IGNORECASE)
@@ -86,7 +92,6 @@ def extract_symptoms_robust(text):
         s_clean = sentence.strip().lower()
         if not s_clean: continue
         
-        # Step A: Resolve Pending from previous sentence
         if pending:
             is_affirmative = any(s_clean.startswith(w) or f" {w} " in f" {s_clean} " for w in affirmations)
             is_negative = any(s_clean.startswith(w) or f" {w} " in f" {s_clean} " for w in negations)
@@ -98,9 +103,8 @@ def extract_symptoms_robust(text):
                 denied.extend(pending)
                 pending = []
             else:
-                pending = [] # Ambiguous, drop it
+                pending = [] 
 
-        # Step B: Scan Current Sentence
         found_in_sentence = []
         for rule in NLP_PATTERNS:
             for pattern in rule["patterns"]:
@@ -114,7 +118,6 @@ def extract_symptoms_robust(text):
 
         if not found_in_sentence: continue
 
-        # Step C: Question or Statement?
         is_question = s_clean.endswith("?") or any(s_clean.startswith(q + " ") for q in question_starters)
 
         if is_question:
@@ -124,39 +127,81 @@ def extract_symptoms_robust(text):
 
     return list(set(confirmed)), list(set(denied)), list(set(pending))
 
-def get_next_question(current_symptoms, denied_symptoms):
-    for symptom in current_symptoms:
-        if symptom in DOCTOR_LOGIC:
-            pathway = DOCTOR_LOGIC[symptom]
-            for next_sym, question in pathway:
-                if next_sym not in current_symptoms and next_sym not in denied_symptoms and next_sym in symptom_columns:
-                    return question, next_sym
-
-    general = [
-        ('Fever', "Do you have a fever?"),
-        ('Cough', "Do you have a cough?"),
-        ('Shortness_of_breath', "Are you short of breath?"),
-        ('History_Smoker', "Do you smoke?"),
-    ]
-    for sym, q in general:
-        if sym not in current_symptoms and sym not in denied_symptoms and sym in symptom_columns:
-            return q, sym
-            
-    return "I have gathered enough information. Please proceed to examination.", None
-
 def predict_disease(symptoms_list):
     if not symptoms_list or model is None:
-        return "Waiting...", 0.0
+        return "Waiting...", 0.0, []
 
-    # Ensure we use the exact vocabulary the Random Forest expects
     input_vector = pd.DataFrame(0, index=[0], columns=symptom_columns)
     for s in symptoms_list:
         if s in symptom_columns:
             input_vector.at[0, s] = 1
     
+    # Get standard prediction
     probs = model.predict_proba(input_vector)[0]
     top_idx = probs.argsort()[-1]
     top_disease = model.classes_[top_idx]
     confidence = float(probs[top_idx])
     
-    return top_disease, confidence
+    # --- EXPLAINABLE AI (XAI) LOGIC ---
+    # Multiply global feature importances by the patient's specific symptoms (1s and 0s)
+    # This tells us which of the patient's symptoms contributed the most to this specific diagnosis
+    patient_importances = model.feature_importances_ * input_vector.values[0]
+    
+    # Get the indices of the top 3 contributing symptoms
+    top_factors_idx = patient_importances.argsort()[-3:][::-1]
+    
+    contributing_factors = []
+    for idx in top_factors_idx:
+        if patient_importances[idx] > 0: # Only include if it actually contributed
+            symptom_name = symptom_columns[idx]
+            weight = patient_importances[idx]
+            contributing_factors.append({"symptom": symptom_name, "weight": float(weight)})
+            
+    return top_disease, confidence, contributing_factors
+
+# --- THE NEW TRUE AI ROUTING ALGORITHM ---
+def get_next_question(current_symptoms, denied_symptoms):
+    """
+    Simulates the marginal impact of every unknown symptom to find the 
+    question that mathematically splits the differential diagnosis best.
+    """
+    if not current_symptoms or model is None:
+        return "Can you tell me what symptoms you are experiencing?", None
+
+    # 1. Get the baseline prediction
+    base_vector = pd.DataFrame(0, index=[0], columns=symptom_columns)
+    for s in current_symptoms:
+        if s in symptom_columns: base_vector.at[0, s] = 1
+        
+    base_probs = model.predict_proba(base_vector)[0]
+    base_top_idx = base_probs.argsort()[-1]
+    base_top_prob = base_probs[base_top_idx]
+
+    best_symptom = None
+    max_impact = 0
+
+    # 2. Simulate asking every unconfirmed symptom
+    for sym in symptom_columns:
+        if sym in current_symptoms or sym in denied_symptoms or sym not in QUESTION_GENERATOR:
+            continue
+            
+        # Simulate: What if they have this symptom?
+        test_vector = base_vector.copy()
+        test_vector.at[0, sym] = 1
+        
+        test_probs = model.predict_proba(test_vector)[0]
+        test_top_prob = test_probs[base_top_idx] 
+        
+        # Calculate Information Gain (Marginal Impact)
+        impact = abs(test_top_prob - base_top_prob)
+        
+        if impact > max_impact:
+            max_impact = impact
+            best_symptom = sym
+
+    # 3. Only ask if it actually changes the math significantly (Threshold: 2% impact)
+    if best_symptom and max_impact > 0.02:
+        question = QUESTION_GENERATOR[best_symptom]
+        return question, best_symptom
+        
+    return "I have gathered enough clinical data. Please proceed to physical examination.", None

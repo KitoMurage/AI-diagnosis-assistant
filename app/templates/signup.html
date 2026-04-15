@@ -1,66 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Doctor Registration</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Sharing the same styles as the login page for consistency */
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; margin: 0; font-family: 'Segoe UI', sans-serif;}
-        .auth-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #2c3e50; font-weight: bold; font-size: 14px;}
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; outline: none; transition: 0.3s;}
-        input:focus, select:focus { border-color: #3498db; }
-        .btn-block { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px;}
-        .btn-block:hover { background: #2980b9; }
-        
-        .alert { padding: 12px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: bold; }
-        .alert-error { background-color: #fce4e4; color: #cc0033; border: 1px solid #fcc2c3; }
-        .link-text { text-align: center; margin-top: 20px; font-size: 14px; }
-        .link-text a { color: #2c3e50; text-decoration: none; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="auth-box">
-        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 10px;">Provider Registration</h2>
-        <p style="text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px;">Create your secure clinical account</p>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form action="/signup" method="POST">
-            <div class="form-group">
-                <label>Choose Username</label>
-                <input type="text" name="username" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Department / Specialty</label>
-                <select name="department" required>
-                    <option value="General Practice">General Practice</option>
-                    <option value="Pulmonology">Pulmonology</option>
-                    <option value="Emergency Medicine">Emergency Medicine</option>
-                    <option value="Internal Medicine">Internal Medicine</option>
-                </select>
-            </div>
+{% extends "base.html" %}
 
-            <div class="form-group">
-                <label>Create Password</label>
-                <input type="password" name="password" minlength="6" required>
-            </div>
-            
-            <button type="submit" class="btn-block">Create Account</button>
-        </form>
+{% block title %}Provider Registration{% endblock %}
+{% block body_class %}auth-body{% endblock %}
 
-        <div class="link-text">
-            Already have an account? <a href="/login">Back to Login</a>
+{% block content %}
+<div class="auth-box">
+    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 10px;">Provider Registration</h2>
+    <p style="text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px;">Create your secure clinical account</p>
+    
+    <form action="/signup" method="POST">
+        <div class="form-group">
+            <label>Choose Username</label>
+            <input type="text" name="username" required>
         </div>
+        
+        <div class="form-group">
+            <label>Department / Specialty</label>
+            <select name="department" required>
+                <option value="General Practice">General Practice</option>
+                <option value="Pulmonology">Pulmonology</option>
+                <option value="Emergency Medicine">Emergency Medicine</option>
+                <option value="Internal Medicine">Internal Medicine</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Create Password</label>
+            <input type="password" name="password" minlength="6" required>
+        </div>
+        
+        <button type="submit" class="btn-block">Create Account</button>
+    </form>
+
+    <div class="link-text">
+        Already have an account? <a href="/login">Back to Login</a>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

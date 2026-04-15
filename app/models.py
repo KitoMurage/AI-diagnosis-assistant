@@ -36,6 +36,8 @@ class Consultation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
     
+    transcript = db.Column(db.Text, default="") 
+    
     extracted_symptoms = db.Column(db.String(500), default="[]")
     denied_symptoms = db.Column(db.String(500), default="[]")
     last_question_tag = db.Column(db.String(100), nullable=True)

@@ -131,8 +131,82 @@ def new_patient():
     
     return jsonify({"status": "success", "consult_id": consult.id})
 
+# --- ADMIN ANALYTICS DASHBOARD ---
+@main.route('/admin')
+@login_required
+def admin_dashboard():
+    # Security: Kick out anyone who isn't the admin
+    if current_user.username != 'admin':
+        flash("Unauthorized access. Admin privileges required.", "error")
+        return redirect(url_for('main.dashboard'))
+        
+    # Aggregate Data Across ALL Doctors
+    all_patients = Patient.query.all()
+    all_consults = Consultation.query.filter(Consultation.diagnosis != "Pending").all()
+    
+    total_patients = len(all_patients)
+    total_consults = len(all_consults)
+    
+    # Calculate Average AI Confidence
+    avg_confidence = 0
+    if total_consults > 0:
+        total_conf = sum(c.confidence for c in all_consults)
+        avg_confidence = (total_conf / total_consults) * 100
+        
+    # Epidemiological Tracking (Count diseases)
+    disease_counts = {}
+    for c in all_consults:
+        disease = c.diagnosis
+        disease_counts[disease] = disease_counts.get(disease, 0) + 1
+        
+    # Sort for the chart
+    sorted_diseases = dict(sorted(disease_counts.items(), key=lambda item: item[1], reverse=True))
+
+    return render_template('admin_dashboard.html', 
+                           total_patients=total_patients,
+                           total_consults=total_consults,
+                           avg_confidence=f"{avg_confidence:.1f}%",
+                           disease_labels=list(sorted_diseases.keys()),
+                           disease_data=list(sorted_diseases.values()))
+
+@main.route('/patient/<int:patient_id>')
+@login_required
+def patient_detail(patient_id):
+    """Detailed EHR view for a specific patient."""
+    patient = Patient.query.get_or_404(patient_id)
+    
+    # Security: Ensure this patient belongs to the logged-in doctor
+    if patient.doctor_id != current_user.id:
+        flash("Unauthorized access. This patient is not in your roster.", "error")
+        return redirect(url_for('main.dashboard'))
+
+    # Fetch all consultations for this patient, newest first
+    consults = Consultation.query.filter_by(patient_id=patient.id).order_by(Consultation.timestamp.desc()).all()
+    
+    processed_consults = []
+    for c in consults:
+        # Convert the stringified database lists back into actual Python lists
+        symptoms = ast.literal_eval(c.extracted_symptoms) if c.extracted_symptoms else []
+        denied = ast.literal_eval(c.denied_symptoms) if c.denied_symptoms else []
+        
+        # Dynamically check for red flags in this specific historical consultation
+        red_flag_watchlist = ['Shortness_of_breath', 'Coughing_Blood', 'Pain_Chest_Upper', 'Wheezing', 'Cyanosis', 'Altered_Mental_Status', 'Stridor', 'Tachycardia']
+        triggered_flags = [sym for sym in symptoms if sym in red_flag_watchlist]
+
+        processed_consults.append({
+            'id': c.id,
+            'timestamp': c.timestamp.strftime("%b %d, %Y - %H:%M"),
+            'diagnosis': c.diagnosis,
+            'confidence': f"{c.confidence * 100:.1f}%" if c.confidence > 0 else "Pending",
+            'symptoms': [s.replace('_', ' ') for s in symptoms],
+            'denied': [s.replace('_', ' ') for s in denied],
+            'red_flags': [s.replace('_', ' ') for s in triggered_flags],
+            'transcript': c.transcript if c.transcript else "No transcript recorded."
+        })
+
+    return render_template('patient_detail.html', patient=patient, consults=processed_consults)
+
 # --- 3. THE AI INFERENCE ENGINE ---
-# Notice we now pass consult_id in the URL instead of using an anonymous session!
 @main.route('/diagnose/<int:consult_id>', methods=['POST'])
 @login_required
 def diagnose(consult_id):
@@ -178,11 +252,13 @@ def diagnose(consult_id):
     record.denied_symptoms = str(denied_symptoms)
     
     # 3. Predict 
-    # (In the future, you could pass record.patient.age into predict_disease here!)
-    top_disease, confidence = predict_disease(current_symptoms)
+    top_disease, confidence, xai_factors = predict_disease(current_symptoms)
     
     record.diagnosis = top_disease
     record.confidence = confidence
+    
+    # Check for Red Flags
+    has_red_flag = any(sym in current_symptoms for sym in ['Shortness_of_breath', 'Coughing_Blood', 'Pain_Chest_Upper', 'Wheezing'])
     
     # 4. Generate Response
     bot_response = ""
@@ -202,6 +278,9 @@ def diagnose(consult_id):
             bot_response = f"Current Analysis: {top_disease} ({confidence*100:.0f}%).\n\nSuggested Next Question: {question_text}"
 
     if next_tag: record.last_question_tag = next_tag
+
+    current_transcript = record.transcript if record.transcript else ""
+    record.transcript = current_transcript + f"Patient: {user_text}\nAI: {bot_response}\n\n"
         
     record.timestamp = datetime.utcnow()
     db.session.commit()
@@ -211,7 +290,9 @@ def diagnose(consult_id):
         "diagnosis": record.diagnosis,
         "confidence": f"{record.confidence*100:.1f}%",
         "symptoms": current_symptoms,
-        "denied": denied_symptoms
+        "denied": denied_symptoms,
+        "xai_factors": xai_factors,     
+        "has_red_flag": has_red_flag    
     })
 
 # We need a route to serve the actual recording UI for a specific patient
