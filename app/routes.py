@@ -8,19 +8,19 @@ import ast
 
 main = Blueprint('main', __name__)
 
-# --- 0. TRAFFIC CONTROLLER (The Missing Route!) ---
+
 @main.route('/')
 def home():
     """
     If someone goes to the base URL, redirect them.
-    If they are logged in, go to the dashboard.
-    If they are logged out, force them to the login screen.
+    If logged in go to the dashboard.
+    If logged out force the login screen.
     """
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     return redirect(url_for('main.login'))
 
-# --- 1. SYSTEM SETUP & AUTHENTICATION ---
+# SYSTEM SETUP & AUTHENTICATION
 
 @main.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -61,12 +61,12 @@ def login():
         
         doctor = Doctor.query.filter_by(username=username).first()
         
-        # Verify user exists AND password is correct
+        # Verify user exists and password is correct
         if doctor and doctor.check_password(password):
             login_user(doctor)
             return redirect(url_for('main.dashboard'))
             
-        # If it fails, flash an error and reload the page
+        # flash an error and reload the page
         flash("Invalid username or password. Please try again.", "error")
         return redirect(url_for('main.login'))
         
@@ -80,7 +80,7 @@ def logout():
     return redirect(url_for('main.login'))
 
 
-# --- 2. PROTECTED CLINICAL ROUTES ---
+# PROTECTED CLINICAL ROUTES
 
 @main.route('/dashboard')
 @login_required
@@ -230,7 +230,7 @@ def diagnose(consult_id):
     for s in new_denied:
         if s not in denied_symptoms and s not in current_symptoms: denied_symptoms.append(s)
 
-    # 2. Cross-Turn Logic
+    # 2. Cross-Turn Logic (Strictly obeys the DOCTOR's last asked question)
     affirmations = ['yes', 'yeah', 'yep', 'correct', 'i do', 'sure']
     negations = ['no', 'nope', 'not', "don't", 'dont', 'never']
     
@@ -243,6 +243,7 @@ def diagnose(consult_id):
         elif is_negative and record.last_question_tag not in denied_symptoms:
             denied_symptoms.append(record.last_question_tag)
 
+    # Update state: Only remember if the DOCTOR just asked a new question
     if new_pending:
         record.last_question_tag = new_pending[0]
     else:
@@ -262,22 +263,21 @@ def diagnose(consult_id):
     
     # 4. Generate Response
     bot_response = ""
-    next_tag = None
 
     if not current_symptoms:
         bot_response = "I'm listening. Please describe the patient's symptoms."
     elif confidence > 0.85:
         bot_response = f"Current Analysis: {top_disease} ({confidence*100:.1f}%).\nConfidence is high. AI recommendation complete."
     else:
-        question_text, next_tag = get_next_question(current_symptoms, denied_symptoms)
+        question_text, _ = get_next_question(current_symptoms, denied_symptoms) # AI suggestion tag ignored for state memory
         
         if new_pending:
             bot_response = f"Current Analysis: {top_disease} ({confidence*100:.0f}%).\n(Tracking Question about {new_pending[0]})"
-            next_tag = new_pending[0]
         else:
             bot_response = f"Current Analysis: {top_disease} ({confidence*100:.0f}%).\n\nSuggested Next Question: {question_text}"
 
-    if next_tag: record.last_question_tag = next_tag
+    # NOTE: We no longer save the AI's suggestion to record.last_question_tag!
+    # The system now only tracks actual spoken questions via new_pending above.
 
     current_transcript = record.transcript if record.transcript else ""
     record.transcript = current_transcript + f"Patient: {user_text}\nAI: {bot_response}\n\n"
@@ -291,7 +291,7 @@ def diagnose(consult_id):
         "confidence": f"{record.confidence*100:.1f}%",
         "symptoms": current_symptoms,
         "denied": denied_symptoms,
-        "xai_factors": xai_factors,     
+        "xai_factors": xai_factors,    
         "has_red_flag": has_red_flag    
     })
 

@@ -19,7 +19,7 @@ def run_test_case(test_name, patient_symptoms):
     print(f"🗣️  Patient Input: {patient_symptoms}")
     print(f"{'-'*50}")
     
-    # 1. Build the matrix
+
     input_vector = {col: 0 for col in symptom_list}
     for s in patient_symptoms:
         if s in input_vector:
@@ -29,7 +29,7 @@ def run_test_case(test_name, patient_symptoms):
             
     df = pd.DataFrame([input_vector], columns=symptom_list)
 
-    # 2. Evaluate Random Forest (Show top 3 to see its "confusion")
+    # 2. Evaluate Random Forest 
     rf_probs = rf_model.predict_proba(df)[0]
     rf_top_3_indices = np.argsort(rf_probs)[-3:][::-1]
     

@@ -10,7 +10,7 @@ def seed_admin():
     with app.app_context():
         print("\n🛡️  Initializing Admin Creation Sequence...")
         
-        # Check if an admin already exists to prevent duplicates
+        # Check if an admin already exists
         existing_admin = Doctor.query.filter_by(username='admin').first()
         if existing_admin:
             print("❌ Error: An account with the username 'admin' already exists.")

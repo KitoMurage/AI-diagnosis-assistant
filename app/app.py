@@ -10,18 +10,17 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clinic.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Required by Flask-Login to encrypt session cookies
-    app.secret_key = 'super_secure_enterprise_key_change_in_production'
+    app.secret_key = 'diagnosis_assistant_secret_key'
     
     # Initialize Database
     db.init_app(app)
     
     # Initialize Security Manager
     login_manager = LoginManager()
-    login_manager.login_view = 'main.login' # If unauthorized, redirect here
+    login_manager.login_view = 'main.login' # redirect if unauth
     login_manager.init_app(app)
     
-    # Tell Flask how to load the current logged-in doctor
+    # load current logged in user
     @login_manager.user_loader
     def load_user(user_id):
         return Doctor.query.get(int(user_id))

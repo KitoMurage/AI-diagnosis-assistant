@@ -272,7 +272,7 @@ th {
 }
 
 /* ==========================================================================
-   COPILOT RECORDING UI (index.html)
+   COPILOT RECORDING UI
    ========================================================================== */
 /* Sidebar Panel */
 .sidebar {
@@ -287,8 +287,15 @@ th {
     position: fixed;
     left: 0;
     top: 0;
+    overflow-y: auto;
 }
-
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #bdc3c7;
+    border-radius: 4px;
+}
 .sidebar h2 {
     margin-top: 0;
     color: #2c3e50;
