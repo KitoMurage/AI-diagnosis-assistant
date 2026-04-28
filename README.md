@@ -17,8 +17,8 @@ The system follows a **3-tier architecture**:
 ### Setup Instructions
 1.  **Clone the Repository:**
     ```bash
-    git clone <repository-url>
-    cd respiratory-copilot
+    git clone github.com/KitoMurage/AI-diagnosis-assistant
+    cd app
     ```
 
 2.  **Create a Virtual Environment:**
