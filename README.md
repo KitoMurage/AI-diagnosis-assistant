@@ -47,25 +47,25 @@ Log in with your credentials. The system uses **Werkzeug** for secure password h
 
 ### 2. Clinician Dashboard & Patient Roster
 View your active patient roster. The system enforces **Row-Level Security (RLS)**, ensuring clinicians can only access and manage patients strictly assigned to their specific `doctor_id`.
-> `![Patient Dashboard](assets/dashboard.png)`
+> ![Patient Dashboard](assets/dashboard.png)
 
 ### 3. Patient EHR & Consultation History
 Access a detailed Electronic Health Record (EHR) for any specific patient. Review a chronological history of past consultations, complete with extracted symptoms, ruled-out symptoms, triggered red flags, and the raw archived conversation transcript.
 
-> `![Consultation History](assets/transcript.png)`
+> ![Consultation History](assets/transcript.png)
 
 ### 4. Ambient Consultation
 * **Start Listening:** Click the microphone icon to begin edge-computed transcription.
 * **Natural Conversation:** Speak naturally. The **NLP State Machine** will extract symptoms in real-time, completely ignoring conversational noise.
 * **Negation Handling:** If you ask "Do you have a cough?" and the patient says "No," the system identifies this as a negated symptom and maps it to the "Ruled Out" array.
-> `![Live Consultation Interface](assets/consultatio_empty.png)`
+> ![Live Consultation Interface](assets/consultatio_empty.png)
 
 ### 5. Explainable AI & Diagnostic Feedback
 * **Probability Display:** The sidebar updates dynamically with the top suspected respiratory conditions.
 * **Diagnostic Rationale (XAI):** The system displays the exact mathematical weights (derived from Shannon Entropy) that drove the prediction, ensuring the model is not a "Black Box."
 * **Clinical Rule-In Questioning:** Instead of static flowcharts, the system dynamically calculates and suggests the exact follow-up question that will most effectively confirm the leading differential diagnosis.
 
-> `![XAI and Diagnostic Feedback](assets/consultation.png)`
+> ![XAI and Diagnostic Feedback](assets/consultation.png)
 
 
 ## 🛡️ Safety & Security
