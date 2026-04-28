@@ -274,64 +274,79 @@ th {
 /* ==========================================================================
    COPILOT RECORDING UI
    ========================================================================== */
-/* Sidebar Panel */
-.sidebar {
-    width: 300px;
-    background: #fff;
-    border-right: 1px solid #ddd;
-    padding: 20px;
+
+.copilot-wrapper {
     display: flex;
-    flex-direction: column;
-    height: 100vh;
+    flex-direction: row;
+    height: calc(100vh - 62px); 
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 25px;
     box-sizing: border-box;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow-y: auto;
-}
-.sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-.sidebar::-webkit-scrollbar-thumb {
-    background-color: #bdc3c7;
-    border-radius: 4px;
-}
-.sidebar h2 {
-    margin-top: 0;
-    color: #2c3e50;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
 }
 
+/* Sidebar Panel */
+.sidebar {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background-color: #bdc3c7; border-radius: 4px; }
+
+/* Cards inside sidebar */
 .stat-box {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #eee;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e9ecef;
+    margin-bottom: 0;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: 13px;
     color: #7f8c8d;
     text-transform: uppercase;
     font-weight: bold;
+    margin-bottom: 10px;
+    display: block;
 }
 
 .stat-value {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
     color: #2c3e50;
-    margin-top: 5px;
 }
+
+/* Symptom Chips */
+.chip {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 4px 4px 0 0;
+}
+.chip-confirmed { background-color: #2ecc71; color: white; }
+.chip-ruled-out { background-color: #e74c3c; color: white; }
 
 /* Main Chat Area */
 .chat-container {
-    margin-left: 300px; /* Offset for sidebar */
-    height: 100vh;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    background: #f4f7f6;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    margin-left: 0;
 }
 
 .chat-header {
@@ -343,10 +358,7 @@ th {
     justify-content: space-between;
 }
 
-.chat-title {
-    font-size: 18px;
-    font-weight: bold;
-}
+.chat-title { font-size: 18px; font-weight: bold; }
 
 .chat-box {
     flex: 1;
@@ -357,46 +369,47 @@ th {
     gap: 15px;
 }
 
+/* Chat Bubbles */
 .message {
-    max-width: 70%;
-    padding: 15px;
-    border-radius: 10px;
-    line-height: 1.4;
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 18px;
+    line-height: 1.5;
     font-size: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
 .bot-msg {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: #f8f9fa;
+    color: #2c3e50;
     align-self: flex-start;
-    border-bottom-left-radius: 2px;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e9ecef;
 }
 
 .user-msg {
     background: #3498db;
     color: white;
     align-self: flex-end;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: 4px;
 }
 
 /* Input Area */
 .input-area {
     padding: 20px 30px;
     background: white;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #e9ecef;
     display: flex;
     gap: 10px;
 }
-
 .input-area input {
     flex: 1;
     padding: 15px;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 16px;
     outline: none;
 }
-
 .mic-btn {
     background: #e74c3c;
     border-radius: 50%;
@@ -406,14 +419,37 @@ th {
     align-items: center;
     justify-content: center;
     font-size: 18px;
+    border: none;
+    color: white;
+    cursor: pointer;
 }
-
 .mic-btn.active {
     background: #27ae60;
     animation: pulse 1.5s infinite;
 }
-
 .send-btn {
     background: #3498db;
-    padding: 0 30px;
+    padding: 0 25px;
+    border-radius: 8px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 950px) {
+    .copilot-wrapper {
+        flex-direction: column;
+        height: auto;
+    }
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .stat-box {
+        flex: 1 1 45%;
+    }
+    .chat-container {
+        height: 600px; 
+    }
 }

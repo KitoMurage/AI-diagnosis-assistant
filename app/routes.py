@@ -5,6 +5,7 @@ from models import Doctor, Patient, Consultation
 from utils import extract_symptoms_robust, get_next_question, predict_disease
 from datetime import datetime
 import ast
+import re
 
 main = Blueprint('main', __name__)
 
@@ -230,12 +231,12 @@ def diagnose(consult_id):
     for s in new_denied:
         if s not in denied_symptoms and s not in current_symptoms: denied_symptoms.append(s)
 
-    # 2. Cross-Turn Logic (Strictly obeys the DOCTOR's last asked question)
+    # 2. Cross-Turn Logic
     affirmations = ['yes', 'yeah', 'yep', 'correct', 'i do', 'sure']
     negations = ['no', 'nope', 'not', "don't", 'dont', 'never']
-    
-    is_affirmative = any(w in user_text.lower().split() for w in affirmations)
-    is_negative = any(w in user_text.lower().split() for w in negations)
+    clean_user_text = re.sub(r'[^\w\s]', '', user_text.lower())
+    is_affirmative = any(w in clean_user_text.lower().split() for w in affirmations)
+    is_negative = any(w in clean_user_text.lower().split() for w in negations)
 
     if record.last_question_tag:
         if is_affirmative and record.last_question_tag not in current_symptoms:
@@ -276,8 +277,6 @@ def diagnose(consult_id):
         else:
             bot_response = f"Current Analysis: {top_disease} ({confidence*100:.0f}%).\n\nSuggested Next Question: {question_text}"
 
-    # NOTE: We no longer save the AI's suggestion to record.last_question_tag!
-    # The system now only tracks actual spoken questions via new_pending above.
 
     current_transcript = record.transcript if record.transcript else ""
     record.transcript = current_transcript + f"Patient: {user_text}\nAI: {bot_response}\n\n"
@@ -295,7 +294,6 @@ def diagnose(consult_id):
         "has_red_flag": has_red_flag    
     })
 
-# We need a route to serve the actual recording UI for a specific patient
 @main.route('/session/<int:consult_id>')
 @login_required
 def session_view(consult_id):

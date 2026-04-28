@@ -7,56 +7,60 @@
 {% endblock %}
 
 {% block content %}
-<div class="sidebar">
-    <h2>Patient File</h2>
-    
-    <div id="red-flag-banner" style="display: none; background-color: #ffeaea; color: #cc0000; padding: 10px; border-left: 4px solid #cc0000; margin-bottom: 15px; border-radius: 4px; font-weight: bold; font-size: 14px; animation: pulse 2s infinite;">
-        <i class="fas fa-exclamation-triangle"></i> CRITICAL WARNING: High-Severity Symptom
+<div class="copilot-wrapper">
+
+    <div class="sidebar">
+        <h2>Patient File</h2>
+        
+        <div id="red-flag-banner" style="display: none; background-color: #ffeaea; color: #cc0000; padding: 10px; border-left: 4px solid #cc0000; margin-bottom: 15px; border-radius: 4px; font-weight: bold; font-size: 14px; animation: pulse 2s infinite;">
+            <i class="fas fa-exclamation-triangle"></i> CRITICAL WARNING: High-Severity Symptom
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Current Diagnosis</div>
+            <div class="stat-value" id="diag-display">Waiting...</div>
+        </div>
+        
+        <div class="stat-box">
+            <div class="stat-label">Confidence</div>
+            <div class="stat-value" id="conf-display">0.0%</div>
+        </div>
+
+        <div id="xai-panel" style="display: none; background: #f8f9fa; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <div class="stat-label" style="color: #2c3e50; font-weight: bold; text-transform: uppercase;"><i class="fas fa-sitemap"></i> Diagnostic Rationale</div>
+            <ul id="xai-list" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #555;">
+                </ul>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Confirmed Symptoms</div>
+            <div id="symptom-list" style="margin-top: 10px;"></div>
+        </div>
+        
+        <div class="stat-box">
+            <div class="stat-label">Ruled Out</div>
+            <div id="denied-list" style="margin-top: 10px;"></div>
+        </div>
+        
+        <a href="/dashboard" class="btn" style="background:#95a5a6; width:100%; margin-top:auto; text-align:center; text-decoration:none; display:block; box-sizing: border-box;">Save & End Session</a>
     </div>
 
-    <div class="stat-box">
-        <div class="stat-label">Current Diagnosis</div>
-        <div class="stat-value" id="diag-display">Waiting...</div>
-    </div>
-    
-    <div class="stat-box">
-        <div class="stat-label">Confidence</div>
-        <div class="stat-value" id="conf-display">0.0%</div>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-title"><i class="fas fa-microphone-alt"></i> Live Consultation Audio</div>
+        </div>
+        
+        <div class="chat-box" id="chat-box">
+            <div class="message bot-msg">Secure session active. Click the microphone to begin transcription.</div>
+        </div>
+        
+        <div class="input-area">
+            <button class="btn mic-btn" onclick="toggleMic()" id="mic-btn"><i class="fas fa-microphone"></i></button>
+            <input type="text" id="user-input" placeholder="Mic off. Click icon to start..." onkeypress="handleKey(event)">
+            <button class="btn send-btn" onclick="manualSend()">Send</button>
+        </div>
     </div>
 
-    <div id="xai-panel" style="display: none; background: #f8f9fa; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
-        <div class="stat-label" style="color: #2c3e50; font-weight: bold; text-transform: uppercase;"><i class="fas fa-sitemap"></i> Diagnostic Rationale</div>
-        <ul id="xai-list" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #555;">
-            </ul>
-    </div>
-
-    <div class="stat-box">
-        <div class="stat-label">Confirmed Symptoms</div>
-        <div id="symptom-list" style="margin-top: 10px;"></div>
-    </div>
-    
-    <div class="stat-box">
-        <div class="stat-label">Ruled Out</div>
-        <div id="denied-list" style="margin-top: 10px;"></div>
-    </div>
-    
-    <a href="/dashboard" class="btn" style="background:#95a5a6; width:100%; margin-top:auto; text-align:center; text-decoration:none; display:block; box-sizing: border-box;">Save & End Session</a>
-</div>
-
-<div class="chat-container">
-    <div class="chat-header">
-        <div class="chat-title"><i class="fas fa-microphone-alt"></i> Live Consultation Audio</div>
-    </div>
-    
-    <div class="chat-box" id="chat-box">
-        <div class="message bot-msg">Secure session active. Click the microphone to begin transcription.</div>
-    </div>
-    
-    <div class="input-area">
-        <button class="btn mic-btn" onclick="toggleMic()" id="mic-btn"><i class="fas fa-microphone"></i></button>
-        <input type="text" id="user-input" placeholder="Mic off. Click icon to start..." onkeypress="handleKey(event)">
-        <button class="btn send-btn" onclick="manualSend()">Send</button>
-    </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>

@@ -93,9 +93,8 @@ def extract_symptoms_robust(text):
         s_clean = sentence.strip().lower()
         if not s_clean: continue
         
-        # --- THE CORRECTED FILTER ---
+      
         # Only filter out lines that explicitly contain the AI's UI tags.
-        # We removed the dictionary loop so the doctor is allowed to ask the suggested questions!
         if "current analysis:" in s_clean or "suggested next question:" in s_clean or "warning check:" in s_clean:
             continue
         # -----------------------------------
@@ -138,9 +137,6 @@ def extract_symptoms_robust(text):
 def predict_disease(symptoms_list):
     if not symptoms_list or model is None:
         return "Waiting...", 0.0, []
-
-    # DEBUG: Un-comment this line if you want to see symptoms in terminal
-    print(f"DEBUG: NLP extracted -> {symptoms_list}")
 
     # 1. Standard ML Prediction (Baseline)
     input_vector = pd.DataFrame(0, index=[0], columns=symptom_columns)
@@ -188,11 +184,11 @@ def predict_disease(symptoms_list):
 
     return ml_disease, ml_confidence, contributing_factors
 
-# --- THE NEW TRUE AI ROUTING ALGORITHM ---
+# --- THE AI ROUTING ALGORITHM ---
 def get_next_question(current_symptoms, denied_symptoms):
     """
     Simulates the marginal impact of every unknown symptom to find the 
-    question that mathematically splits the differential diagnosis best.
+    question that most strongly CONFIRMS the top suspected diseases.
     """
     if not current_symptoms or model is None:
         return "Can you tell me what symptoms you are experiencing?", None
@@ -203,8 +199,11 @@ def get_next_question(current_symptoms, denied_symptoms):
         if s in symptom_columns: base_vector.at[0, s] = 1
         
     base_probs = model.predict_proba(base_vector)[0]
-    base_top_idx = base_probs.argsort()[-1]
-    base_top_prob = base_probs[base_top_idx]
+    
+    # Get the indices of the Top 2 currently suspected diseases
+    top_indices = base_probs.argsort()[-2:][::-1]
+    top_idx = top_indices[0]
+    runner_up_idx = top_indices[1]
 
     best_symptom = None
     max_impact = 0
@@ -214,21 +213,23 @@ def get_next_question(current_symptoms, denied_symptoms):
         if sym in current_symptoms or sym in denied_symptoms or sym not in QUESTION_GENERATOR:
             continue
             
-        # Simulate: What if they have this symptom?
+        # Simulate: What if the patient says YES to this symptom?
         test_vector = base_vector.copy()
         test_vector.at[0, sym] = 1
-        
         test_probs = model.predict_proba(test_vector)[0]
-        test_top_prob = test_probs[base_top_idx] 
         
-        # Calculate Information Gain (Marginal Impact)
-        impact = abs(test_top_prob - base_top_prob)
+        # CLINICAL LOGIC: How much does a YES increase our confidence in the Top 2 diseases?
+        impact_on_top = test_probs[top_idx] - base_probs[top_idx]
+        impact_on_runner_up = test_probs[runner_up_idx] - base_probs[runner_up_idx]
+        
+        # Take the maximum positive impact on either of the leading differentials
+        impact = max(impact_on_top, impact_on_runner_up)
         
         if impact > max_impact:
             max_impact = impact
             best_symptom = sym
 
-    # 3. Only ask if it actually changes the math significantly (Threshold: 2% impact)
+    # 3. Only ask if it actually increases confidence significantly (Threshold: > 2%)
     if best_symptom and max_impact > 0.02:
         question = QUESTION_GENERATOR[best_symptom]
         return question, best_symptom
