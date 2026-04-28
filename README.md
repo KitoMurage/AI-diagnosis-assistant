@@ -12,7 +12,7 @@ The system follows a **3-tier architecture**:
 
 ### Prerequisites
 * Python 3.9 or higher
-* Google Chrome (required for Web Speech API support)
+* **Google Chrome** (required for Web Speech API support)
 
 ### Setup Instructions
 1.  **Clone the Repository:**
