@@ -17,7 +17,7 @@ The system follows a **3-tier architecture**:
 ### Setup Instructions
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/KitoMurage/AI-diagnosis-assistant.git](https://github.com/KitoMurage/AI-diagnosis-assistant.git)
+    git clone https://github.com/KitoMurage/AI-diagnosis-assistant.git
     cd AI-diagnosis-assistant
     ```
 
