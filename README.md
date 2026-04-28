@@ -43,7 +43,7 @@ The system follows a **3-tier architecture**:
 
 ### 1. Clinician Authentication
 Log in with your credentials. The system uses **Werkzeug** for secure password hashing to protect access to patient records.
-> `![Login Screen](assets/login.png)`
+> ![Login Screen](assets/login.png)
 
 ### 2. Clinician Dashboard & Patient Roster
 View your active patient roster. The system enforces **Row-Level Security (RLS)**, ensuring clinicians can only access and manage patients strictly assigned to their specific `doctor_id`.
